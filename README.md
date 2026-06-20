@@ -447,14 +447,6 @@ ENABLE_STREAMING = False
 - [ ] Vector database alternatives (Pinecone, Weaviate)
 - [ ] User authentication & multi-user support
 
-## License
-
-[Specify your license here]
-
-## Contributing
-
-[Contribution guidelines if open source]
-
 ## Support
 
 For issues or questions:
