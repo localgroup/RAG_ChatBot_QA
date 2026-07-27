@@ -9,21 +9,12 @@ Functions:
     load_pdf_documents(): Load all PDF, TXT, and DOCX files from the documents directory.
 """
 
-# ============================================================================
-# Imports
-# ============================================================================
-
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 
 # Import configuration for document directory path
 from config import DOCUMENT_DIRECTORY
-
-
-# ============================================================================
-# Document Loading Functions
-# ============================================================================
 
 
 def load_pdf_documents() -> list[Document]:
@@ -62,18 +53,12 @@ def load_pdf_documents() -> list[Document]:
 
     all_documents: list[Document] = []
 
-    # ========================================================================
-    # Verify Directory Exists
-    # ========================================================================
     if not DOCUMENT_DIRECTORY.exists():
         raise ValueError(
             f"Documents directory not found at: {DOCUMENT_DIRECTORY}\n"
             f"Please create the directory and add PDF, TXT, or DOCX files."
         )
 
-    # ========================================================================
-    # Load PDF Files
-    # ========================================================================
     pdf_files = list(DOCUMENT_DIRECTORY.glob("*.pdf"))
     if pdf_files:
         for pdf_file in pdf_files:
@@ -85,9 +70,6 @@ def load_pdf_documents() -> list[Document]:
             except Exception as e:
                 print(f"Warning: Failed to load PDF {pdf_file.name}: {str(e)}")
 
-    # ========================================================================
-    # Load Text Files
-    # ========================================================================
     txt_files = list(DOCUMENT_DIRECTORY.glob("*.txt"))
     for txt_file in txt_files:
         try:
@@ -102,9 +84,6 @@ def load_pdf_documents() -> list[Document]:
         except Exception as e:
             print(f"Warning: Failed to load text file {txt_file.name}: {str(e)}")
 
-    # ========================================================================
-    # Load Word Documents
-    # ========================================================================
     docx_files = list(DOCUMENT_DIRECTORY.glob("*.docx"))
     if docx_files:
         try:
@@ -125,9 +104,6 @@ def load_pdf_documents() -> list[Document]:
             print("Warning: python-docx not installed. DOCX files will be skipped.")
             print("Install with: pip install python-docx")
 
-    # ========================================================================
-    # Validate Documents Were Loaded
-    # ========================================================================
     if not all_documents:
         raise ValueError(
             f"No documents were loaded from the documents folder at: {DOCUMENT_DIRECTORY}\n"
