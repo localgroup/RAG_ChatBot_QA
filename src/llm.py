@@ -16,8 +16,6 @@ from langchain_groq import ChatGroq
 from config import GROQ_MODEL, GROQ_TEMPERATURE
 
 
-
-
 def create_llm() -> ChatGroq:
     """
     Create and return a Groq chat model for RAG answer generation.

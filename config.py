@@ -31,7 +31,7 @@ DOCUMENT_DIRECTORY: Path = PROJECT_ROOT / "documents"
 GROQ_MODEL: str = "llama-3.1-8b-instant"
 
 # Temperature parameter for Groq LLM (0 = deterministic, higher = more creative)
-GROQ_TEMPERATURE: float = 0.7
+GROQ_TEMPERATURE: float = 0.3
 
 
 # Embedding Model Configuration

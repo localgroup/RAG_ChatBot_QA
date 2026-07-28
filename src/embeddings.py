@@ -12,7 +12,7 @@ Functions:
 from langchain_huggingface import HuggingFaceEmbeddings
 
 # Import configuration constants for embedding model name
-from config import HF_EMBEDDING_MODEL
+from config import HF_EMBEDDING_MODEL 
 
 
 def create_huggingface_embeddings() -> HuggingFaceEmbeddings:
