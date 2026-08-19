@@ -57,7 +57,7 @@ from src.vector_store import build_vector_store, save_vector_store, load_vector_
 from src.rag_chain import create_rag_chain, stream_rag_response
 
 # Advanced retrieval options
-from src.retrieval import create_hybrid_retriever, filter_by_metadata, rerank_results
+from src.retrieval import create_hybrid_retriever, rerank_results
 
 # Document upload functionality
 from src.document_upload import (

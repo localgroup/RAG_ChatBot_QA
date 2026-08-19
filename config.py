@@ -28,10 +28,10 @@ DOCUMENT_DIRECTORY: Path = PROJECT_ROOT / "documents"
 
 # Language Model Configuration
 # Groq LLM model identifier used for generating answers
-GROQ_MODEL: str = "llama-3.1-8b-instant"
+GROQ_MODEL: str = "openai/gpt-oss-120b"
 
 # Temperature parameter for Groq LLM (0 = deterministic, higher = more creative)
-GROQ_TEMPERATURE: float = 0.3
+GROQ_TEMPERATURE: float = 0.1
 
 
 # Embedding Model Configuration
@@ -130,9 +130,6 @@ SEMANTIC_WEIGHT: float = 0.7
 
 # BM25 weight in hybrid search (automatically 1 - SEMANTIC_WEIGHT)
 BM25_WEIGHT: float = 1.0 - SEMANTIC_WEIGHT
-
-# Enable metadata filtering in retrieval
-ENABLE_METADATA_FILTERING: bool = True
 
 # Enable result reranking for better relevance
 ENABLE_RERANKING: bool = True

@@ -8,7 +8,6 @@ This module provides enhanced retrieval capabilities beyond simple semantic sear
 
 Functions:
     hybrid_search(): Perform hybrid semantic + BM25 search.
-    filter_by_metadata(): Filter results using document metadata.
     rerank_results(): Re-score results using relevance models.
 """
 
@@ -24,7 +23,6 @@ from config import (
     ENABLE_HYBRID_SEARCH,
     SEMANTIC_WEIGHT,
     BM25_WEIGHT,
-    ENABLE_METADATA_FILTERING,
     ENABLE_RERANKING,
     RETRIEVAL_K,
 )
@@ -105,11 +103,6 @@ def create_hybrid_retriever(
             weights=[SEMANTIC_WEIGHT, BM25_WEIGHT],
         )
 
-        logger.info(
-            f"Hybrid retriever created: "
-            f"Semantic {SEMANTIC_WEIGHT*100}% + BM25 {BM25_WEIGHT*100}%"
-        )
-
         return hybrid_retriever
 
     except ImportError:
@@ -120,102 +113,7 @@ def create_hybrid_retriever(
         return semantic_retriever
 
 
-
-# Metadata Filtering
-def filter_by_metadata(
-    documents: list[Document],
-    metadata_filter: dict[str, Any] | None = None,
-) -> list[Document]:
-    """
-    Filter retrieved documents by metadata criteria.
-
-    Args:
-        documents (list[Document]): List of documents to filter.
-        metadata_filter (dict | None): Filtering criteria.
-            Format: {"field": "value"} for exact match
-                   {"field": {"$op": value}} for operators ($gt, $lt, $gte, $lte, etc.)
-            If None, returns all documents unchanged.
-
-    Returns:
-        list[Document]: Filtered subset of documents matching criteria.
-            Returns original list if filter is None or empty.
-
-    Note:
-        - Metadata must exist in document metadata dicts
-        - Missing metadata fields are treated as False for filters
-        - Useful as pre-filtering before vector search
-        - Can significantly reduce search space for large corpora
-
-    """
-
-    # Validate Configuration
-    if not ENABLE_METADATA_FILTERING or metadata_filter is None:
-        # Filtering disabled or no filter specified; return all
-        return documents
-
-    logger = get_logger()
-
-    # Apply Metadata Filters
-    filtered_documents = []
-
-    for document in documents:
-        # Get document metadata
-        doc_metadata = document.metadata or {}
-
-        # Check if document matches all filter criteria
-        matches = True
-
-        for field, filter_value in metadata_filter.items():
-            # Handle simple value match
-            if isinstance(filter_value, str) or isinstance(filter_value, int):
-                if doc_metadata.get(field) != filter_value:
-                    matches = False
-                    break
-
-            # Handle operator-based filters ($gt, $lt, etc.)
-            elif isinstance(filter_value, dict):
-                doc_value = doc_metadata.get(field)
-
-                # $gt: greater than
-                if "$gt" in filter_value:
-                    if not (doc_value > filter_value["$gt"]):
-                        matches = False
-                        break
-
-                # $gte: greater than or equal
-                if "$gte" in filter_value:
-                    if not (doc_value >= filter_value["$gte"]):
-                        matches = False
-                        break
-
-                # $lt: less than
-                if "$lt" in filter_value:
-                    if not (doc_value < filter_value["$lt"]):
-                        matches = False
-                        break
-
-                # $lte: less than or equal
-                if "$lte" in filter_value:
-                    if not (doc_value <= filter_value["$lte"]):
-                        matches = False
-                        break
-
-        # Include document if all criteria matched
-        if matches:
-            filtered_documents.append(document)
-
-    logger.info(
-        f"Metadata filtering: {len(documents)} documents "
-        f"→ {len(filtered_documents)} results"
-    )
-
-    return filtered_documents
-
-
-# ============================================================================
 # Result Reranking
-# ============================================================================
-
 
 def rerank_results(
     query: str,
@@ -227,10 +125,10 @@ def rerank_results(
 
     Reranking is a two-stage retrieval process:
 
-    1. **First stage (Retrieval)**: Get broad set of candidates (e.g., top-50)
+    1. First stage (Retrieval): Get broad set of candidates (e.g., top-50)
        Uses fast retrieval: embeddings, BM25, etc.
 
-    2. **Second stage (Reranking)**: Re-score candidates more accurately
+    2. Second stage (Reranking): Re-score candidates more accurately
        Uses more accurate but slower method
 
     Benefits:

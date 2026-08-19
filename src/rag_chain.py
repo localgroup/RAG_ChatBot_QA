@@ -29,7 +29,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 # Import configuration for retrieval parameters
 from config import RETRIEVAL_K
 
-# Import the LLM factory
+# Import the LLM
 from src.llm import create_llm
 
 
@@ -156,7 +156,6 @@ def create_rag_chain() -> Any:
 
 
 # Streaming RAG Chain (for Real-Time Output)
-
 
 def stream_rag_response(
     rag_chain: Any,
