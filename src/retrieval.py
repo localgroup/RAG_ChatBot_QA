@@ -13,9 +13,14 @@ Functions:
 
 
 from typing import Any
+from src.logging_config import get_logger
 
 from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
+from langchain.retrievers import EnsembleRetriever
+
+from src.embeddings import create_huggingface_embeddings
+import numpy as np
 
 
 # Imports - Configuration
@@ -26,10 +31,6 @@ from config import (
     ENABLE_RERANKING,
     RETRIEVAL_K,
 )
-
-
-# Imports - Utilities
-from src.logging_config import get_logger
 
 
 # Hybrid Search (Semantic + BM25)
@@ -96,8 +97,6 @@ def create_hybrid_retriever(
     # Create Ensemble Retriever (Hybrid)
     # Combine both retrievers with configurable weights
     try:
-        from langchain.retrievers import EnsembleRetriever
-
         hybrid_retriever = EnsembleRetriever(
             retrievers=[semantic_retriever, bm25_retriever],
             weights=[SEMANTIC_WEIGHT, BM25_WEIGHT],
@@ -165,9 +164,8 @@ def rerank_results(
         >>> print(f"Top doc score improved by X%")
     """
 
-    # ========================================================================
+
     # Validate Configuration
-    # ========================================================================
     if not ENABLE_RERANKING or not documents:
         # Reranking disabled or no documents to rerank
         return documents
@@ -178,15 +176,11 @@ def rerank_results(
 
     logger = get_logger()
 
-    # ========================================================================
     # Calculate Relevance Scores
-    # ========================================================================
     # Score each document based on semantic similarity to query
     # Using embedding-based scoring; could be replaced with cross-encoders
 
     try:
-        from src.embeddings import create_huggingface_embeddings
-
         embeddings = create_huggingface_embeddings()
 
         # Get query embedding
@@ -200,14 +194,14 @@ def rerank_results(
             doc_embedding = embeddings.embed_query(document.page_content)
 
             # Calculate cosine similarity
-            import numpy as np
-
             query_vec = np.array(query_embedding)
             doc_vec = np.array(doc_embedding)
 
-            similarity = np.dot(query_vec, doc_vec) / (
-                np.linalg.norm(query_vec) * np.linalg.norm(doc_vec)
-            )
+            norm_product = np.linalg.norm(query_vec) * np.linalg.norm(doc_vec)  # It could be zero if either vector is zero-length
+            if norm_product == 0:
+                similarity = 0.0
+            else:
+                similarity = np.dot(query_vec, doc_vec) / norm_product
 
             scored_documents.append((document, similarity))
 
@@ -215,9 +209,7 @@ def rerank_results(
         logger.warning(f"Reranking failed: {str(e)}; returning original order")
         return documents[:top_k]
 
-    # ========================================================================
     # Sort by Relevance Score and Limit to Top-K
-    # ========================================================================
     # Sort descending by similarity score
     sorted_docs = sorted(scored_documents, key=lambda x: x[1], reverse=True)
 
