@@ -14,9 +14,7 @@ Functions:
     build_source_payload(): Extract document metadata for UI display.
 """
 
-# ============================================================================
 # Imports
-# ============================================================================
 
 import os
 from pathlib import Path
@@ -27,14 +25,11 @@ from dotenv import load_dotenv
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, HumanMessage
 
-# Import configuration for directory and API key validation
+# Import configuration for directory path
 from config import DOCUMENT_DIRECTORY
 
 
-# ============================================================================
 # Environment and Configuration Validation
-# ============================================================================
-
 
 def validate_configuration() -> None:
     """
@@ -58,32 +53,20 @@ def validate_configuration() -> None:
         - GROQ_API_KEY must be set before calling LLM functions
         - Typically called at the start of helper functions that need these resources
         - Environment variables can be set via .env file or export commands
-
-    Examples:
-        >>> validate_configuration()  # Validates silent; exceptions on st.stop()
-        >>> # In Streamlit app:
-        >>> # If GROQ_API_KEY is missing, app displays error and stops
     """
 
-    # ========================================================================
     # Check for required environment variables
-    # ========================================================================
     if not os.getenv("GROQ_API_KEY"):
         st.error("Missing required environment variable: GROQ_API_KEY")
         st.stop()
 
-    # ========================================================================
     # Check that DOCUMENT_DIRECTORY exists
-    # ========================================================================
     if not DOCUMENT_DIRECTORY.exists():
         st.error(f"Documents directory not found: {DOCUMENT_DIRECTORY}")
         st.stop()
 
 
-# ============================================================================
 # Streamlit Session State Management
-# ============================================================================
-
 
 def initialize_session_state() -> None:
     """
@@ -116,39 +99,29 @@ def initialize_session_state() -> None:
         - Messages have format: {"role": "user"|"assistant", "content": str, ...}
         - Vector store is cached in session to avoid rebuilding on every interaction
         - Upload vector store is kept separate for flexible switching
-
-    Examples:
-        >>> initialize_session_state()
-        >>> st.session_state.messages.append({
-        ...     "role": "user",
-        ...     "content": "What is attention?"
-        ... })
-        >>> # Later, user can upload files:
-        >>> st.session_state.uploaded_vector_store = upload_store
-        >>> st.session_state.using_uploads = True
     """
 
     # Initialize default values for session keys if they don't exist
-    # Base documents (research papers)
-    st.session_state.setdefault("vector_store", None)
-    st.session_state.setdefault("loaded_document_count", 0)
-    st.session_state.setdefault("chunk_count", 0)
+    defaults = {
+        # Base documents
+        "vector_store": None,
+        "loaded_document_count": 0,
+        "chunk_count": 0,
+        # Chat history
+        "messages": [],
+        # Upload documents
+        "uploaded_vector_store": None,
+        "uploaded_files": [],
+        "using_uploads": False,
+        "upload_chunk_count": 0,
+        "upload_session_size": 0.0,
+    }
+    
+    for key, value in defaults.items():
+        st.session_state.setdefault(key, value)
 
-    # Chat history
-    st.session_state.setdefault("messages", [])
 
-    # Upload documents
-    st.session_state.setdefault("uploaded_vector_store", None)
-    st.session_state.setdefault("uploaded_files", [])
-    st.session_state.setdefault("using_uploads", False)
-    st.session_state.setdefault("upload_chunk_count", 0)
-    st.session_state.setdefault("upload_session_size", 0.0)
-
-
-# ============================================================================
 # Chat History Conversion
-# ============================================================================
-
 
 def build_chat_history_messages() -> list[HumanMessage | AIMessage]:
     """
@@ -176,15 +149,6 @@ def build_chat_history_messages() -> list[HumanMessage | AIMessage]:
         - Preserves message order from st.session_state.messages
         - Ignores message entries without 'role' or 'content' keys
         - Used by create_rag_chain() to provide history context for retrieval
-
-    Examples:
-        >>> st.session_state.messages = [
-        ...     {"role": "user", "content": "What is attention?"},
-        ...     {"role": "assistant", "content": "Attention is..."}
-        ... ]
-        >>> history = build_chat_history_messages()
-        >>> len(history)  # Output: 2
-        >>> isinstance(history[0], HumanMessage)  # Output: True
     """
 
     # Initialize empty list for LangChain message objects
@@ -206,10 +170,7 @@ def build_chat_history_messages() -> list[HumanMessage | AIMessage]:
     return history
 
 
-# ============================================================================
 # Source Document Metadata Extraction
-# ============================================================================
-
 
 def build_source_payload(response_context: list[Document]) -> list[dict[str, Any]]:
     """
@@ -237,18 +198,6 @@ def build_source_payload(response_context: list[Document]) -> list[dict[str, Any
         - Handles missing metadata gracefully (uses "Unknown" or "N/A")
         - Extracts just the filename from the full path for cleaner UI
         - Preserves order of returned documents
-
-    Examples:
-        >>> # Assuming documents from RAG chain
-        >>> documents = [
-        ...     Document(
-        ...         page_content="Attention mechanism...",
-        ...         metadata={"source": "/path/to/Attention.pdf", "page": 0}
-        ...     )
-        ... ]
-        >>> sources = build_source_payload(documents)
-        >>> print(sources[0]["name"])  # Output: "Attention.pdf"
-        >>> print(sources[0]["page"])  # Output: 0
     """
 
     # Initialize empty list for source data
@@ -276,32 +225,24 @@ def build_source_payload(response_context: list[Document]) -> list[dict[str, Any
     return sources
 
 
-# ============================================================================
 # Rate Limit Error Formatting
-# ============================================================================
-
 
 def format_rate_limit_error(error_message: str) -> str:
     """
     Extract key info from Groq rate limit error and format for UI display.
     
-    Extracts token usage limits and retry time from error message,
+    Extracts token usage limits and retry time from error message string,
     showing only helpful information without sensitive IDs or raw data.
     
     Args:
-        error_message (str): The full error message from Groq API
+        error_message (str): The full error message from Groq API as a string
     
     Returns:
         str: Formatted markdown string with user-friendly error info
-    
-    Examples:
-        >>> error = "Rate limit reached for model `llama-3.1-8b-instant`..."
-        >>> formatted = format_rate_limit_error(error)
-        >>> print(formatted)  # Displays readable format with token info
     """
     import re
     
-    # Extract key numbers from error message
+    # Extract key numbers from error message (string)
     limit_match = re.search(r'Limit (\d+)', error_message)
     used_match = re.search(r'Used (\d+)', error_message)
     requested_match = re.search(r'Requested (\d+)', error_message)
@@ -312,13 +253,15 @@ def format_rate_limit_error(error_message: str) -> str:
     formatted += "Code: `rate_limit_exceeded`\n\n"
     
     # Add token usage info if available
-    if limit_match and used_match and requested_match:
+    if limit_match and requested_match:
         formatted += (
             f"📊 **Token Usage:**\n"
             f"- Limit: {limit_match.group(1)} tokens/min\n"
-            f"- Used: {used_match.group(1)} tokens\n"
-            f"- Requested: {requested_match.group(1)} tokens\n\n"
+            f"- Requested: {requested_match.group(1)} tokens\n"
         )
+        if used_match:
+            formatted += f"- Used: {used_match.group(1)} tokens\n"
+        formatted += "\n"
     
     # Add retry time if available
     if retry_match:
@@ -328,7 +271,8 @@ def format_rate_limit_error(error_message: str) -> str:
     formatted += (
         "💡 **What you can do:**\n"
         "- Ask shorter, more concise questions\n"
-        "- Wait before sending another request"
+        "- Reduce your message size and try again\n"
+        "- Try again after the wait time has passed\n"
     )
     
     return formatted
