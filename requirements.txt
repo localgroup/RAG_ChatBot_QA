@@ -1,36 +1,31 @@
 # Dependencies for the RAG Document Q&A Application with Groq and HuggingFace
-# Version ranges chosen for stability and compatibility
-
-# ============================================================================
-# Core Dependencies - Required for RAG functionality
-# ============================================================================
+# Pinned for Python 3.13 compatibility with LangChain 0.3.x.
 
 # Web UI framework
-streamlit>=1.43,<2.0
+streamlit==1.43.2
 
 # Environment variable management
-python-dotenv>=1.0,<2.0
+python-dotenv==1.0.1
 
 # LangChain ecosystem for RAG orchestration
-langchain>=0.3,<1.0
-langchain-core>=0.3.78,<1.0
-langchain-community>=0.3,<1.0
-langchain-groq>=0.2,<1.0
-langchain-huggingface>=0.3,<1.0
+langchain==0.3.28
+langchain-core>=0.3.73,<1.0.0
+langchain-community==0.3.28
+langchain-groq==0.2.0
+langchain-huggingface==0.3.0
+
+# Pydantic compatibility for LangChain 0.3.x on Python 3.13
+pydantic>=2.7,<2.11
 
 # Vector database and similarity search
-faiss-cpu>=1.10,<2.0
+faiss-cpu==1.10.0
 
 # Document parsing
-pypdf>=5.0,<6.0
-python-docx>=0.8,<1.0
+pypdf==5.0.1
+python-docx==1.1.2
 
 # Embeddings and sentence transformers
-sentence-transformers>=3.0,<4.0
-
-# ============================================================================
-# Advanced Retrieval Dependencies
-# ============================================================================
+sentence-transformers==3.2.1
 
 # BM25 retriever for hybrid search (semantic + keyword-based)
-rank-bm25>=0.2,<1.0
+rank-bm25==0.2.2
