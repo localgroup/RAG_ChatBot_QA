@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "faiss-cpu==1.10.0",
+    "faiss-cpu==1.14.3",
     "langchain==0.3.28",
     "langchain-community==0.3.28",
     "langchain-core>=0.3.73,<1.0.0",

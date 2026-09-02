@@ -18,7 +18,7 @@ langchain-huggingface==0.3.0
 pydantic>=2.7,<2.11
 
 # Vector database and similarity search
-faiss-cpu==1.10.0
+faiss-cpu==1.14.3
 
 # Document parsing
 pypdf==5.0.1
