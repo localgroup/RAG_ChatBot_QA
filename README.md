@@ -2,6 +2,8 @@
 
 A production-ready Retrieval-Augmented Generation (RAG) web application for querying documents using natural language. Built with **Streamlit**, **LangChain**, **HuggingFace embeddings**, and **Groq LLM**.
 
+CHECK IT OUT LIVE: [HERE](https://localgroup-rag-chatbot-qa-app-weihxe.streamlit.app/).
+
 ## Overview
 
 This application enables interactive question-answering over documents through:
